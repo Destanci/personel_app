@@ -1,14 +1,13 @@
 import 'dart:io';
-import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:personel_app/managers/employee_manager.dart';
-import 'package:personel_app/theme.dart';
-import 'package:personel_app/views/main_page.dart';
 import 'package:provider/provider.dart';
 
+import 'managers/employee_manager.dart';
 import 'managers/json_employee_reader.dart';
+import 'theme.dart';
+import 'views/main_page.dart';
 
 void main() async {
   await WidgetsFlutterBinding.ensureInitialized();
@@ -26,11 +25,9 @@ class MyHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     if (kDebugMode) {
-      developer.log('--- APPLICATION START DEBUG MODE ---');
       return super.createHttpClient(context)
         ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
     } else {
-      developer.log('--- APPLICATION START NON-DEBUG MODE ---');
       return super.createHttpClient(context);
     }
   }
