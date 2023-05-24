@@ -1,37 +1,68 @@
 import 'package:flutter/material.dart';
 
+import '../core/_utils/utilities.dart';
 import '../models/employee_model.dart';
+import 'circle_image_avatar.dart';
 
-class EmployeeCard extends StatefulWidget {
+class EmployeeTile extends StatefulWidget {
   final Employee employee;
 
-  const EmployeeCard({
+  const EmployeeTile({
     Key? key,
     required this.employee,
   }) : super(key: key);
 
   @override
-  _EmployeeCardState createState() => _EmployeeCardState();
+  _EmployeeTileState createState() => _EmployeeTileState();
 }
 
-class _EmployeeCardState extends State<EmployeeCard> {
+class _EmployeeTileState extends State<EmployeeTile> {
+  static const double imageSize = 50.0;
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-      child: Card(
-        child: Column(
-          children: [
-            Image.asset("assets/placeholder.png"),
-            Text(
-              '${widget.employee.name} ${widget.employee.surname}',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ],
+    return ListTile(
+      onTap: () {
+        if (Utilities.isKeyboardShowing(context)) {
+          Utilities.closeKeyboard(context);
+        }
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => ConversationPage(conversationId: conversation.id),
+        //   ),
+        // );
+      },
+      leading: SizedBox(
+        height: 50,
+        width: 50,
+        child: CircleImageAvatar(
+          imagePath: widget.employee.picturePath ?? '',
+          size: 25,
         ),
+      ),
+      title: Padding(
+        padding: const EdgeInsets.only(bottom: 1.0),
+        child: Text(
+          '${widget.employee.name ?? ''} ${widget.employee.surname ?? ''}',
+          textAlign: TextAlign.left,
+          style: TextStyle(
+            fontSize: imageSize / 2.5,
+          ),
+          maxLines: 1,
+          softWrap: false,
+          overflow: TextOverflow.fade,
+        ),
+      ),
+      subtitle: Text(
+        widget.employee.title ?? '',
+        textAlign: TextAlign.left,
+        style: TextStyle(
+          fontSize: imageSize / 3.5,
+        ),
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.fade,
       ),
     );
   }
