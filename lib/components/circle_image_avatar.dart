@@ -33,16 +33,7 @@ class CircleImageAvatarState extends State<CircleImageAvatar> {
       child: widget.imagePath.isEmpty || !widget.imagePath.toString().startsWith('/')
           ? CircleAvatar(
               maxRadius: widget.size,
-              backgroundColor: widget.color,
-              child: widget.foreground ??
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      widget.placeholder,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
-                  ),
+              backgroundImage: AssetImage('assets/placeholder.png'),
             )
           : CircleAvatar(
               maxRadius: widget.size,

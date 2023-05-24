@@ -8,6 +8,7 @@ class Utilities {
   }
 
   static closeKeyboard(BuildContext context) {
+    if (!isKeyboardShowing(context)) return false;
     FocusScopeNode currentFocus = FocusScope.of(context);
     if (!currentFocus.hasPrimaryFocus) {
       currentFocus.unfocus();

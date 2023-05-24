@@ -10,8 +10,8 @@ import 'package:provider/provider.dart';
 
 import 'managers/json_employee_reader.dart';
 
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
+void main() async {
+  await WidgetsFlutterBinding.ensureInitialized();
 
 // ! Remove after the release
   HttpOverrides.global = MyHttpOverrides();
