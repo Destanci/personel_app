@@ -5,13 +5,15 @@ import 'dart:developer' as developer;
 
 class ConnectionManager with ChangeNotifier {
   static final ConnectionManager _singleton = ConnectionManager._internal();
-  ConnectionManager._internal();
+  ConnectionManager._internal() {
+    developer.log('$this initialized');
+  }
 
   factory ConnectionManager() {
     return _singleton;
   }
 
-  static const bool _debug = true;
+  static const bool _debug = false;
 
   bool _hasConnection = false;
   bool get hasConnection => _hasConnection;
@@ -20,15 +22,15 @@ class ConnectionManager with ChangeNotifier {
     notifyListeners();
   }
 
-  static const String _host = 'localhost:50104';
-  String get host => _host; //'http://${_host.replaceFirst('localhost', '10.0.2.2')}';
+  static const String _host = 'localhost:7025';
+  String get host => 'https://${_host.replaceFirst('localhost', '10.0.2.2')}';
 
   Future<Map<String, dynamic>?> postServer(
     String data, {
-    String controller = 'client/CheckClient',
+    String controller = '',
     timeout = 10,
   }) async {
-    var url = '$_host/api/$controller';
+    var url = '$host/api/$controller';
 
     if (_debug) {
       developer.log('To: $url Posting:\n$data');
@@ -46,6 +48,9 @@ class ConnectionManager with ChangeNotifier {
         .timeout(Duration(seconds: timeout))
         .then(
       (response) {
+        if (_debug) {
+          developer.log('CONNECTION STATUS CODE: ${response.statusCode}');
+        }
         if (response.statusCode == 200) {
           connectionEstablished = true;
           if (_debug) {

@@ -17,7 +17,7 @@ void main() async {
   HttpOverrides.global = MyHttpOverrides();
 
   // JEmployeeReader().read();
-  ApiManager().getEmployees(PagedRequest(start: 0, length: 20));
+  ApiManager().getEmployees(PagedRequest(start: 0, length: 10));
 
   runApp(const MainApp());
 }

@@ -2,7 +2,7 @@ class Employee {
   int? id;
   String? name;
   String? surname;
-  String? birthdayDate;
+  DateTime? birthdayDate;
   String? gender;
   String? email;
   String? phone;
@@ -12,7 +12,7 @@ class Employee {
   int? positionId;
   String? positionName;
   String? title;
-  String? hireDate;
+  DateTime? hireDate;
   String? about;
   dynamic picturePath;
 
@@ -45,7 +45,7 @@ class Employee {
       surname = map["Surname"];
     }
     if (map["BirthdayDate"] is String) {
-      birthdayDate = map["BirthdayDate"];
+      birthdayDate = DateTime.parse(map["BirthdayDate"]);
     }
     if (map["Gender"] is String) {
       gender = map["Gender"];
@@ -75,7 +75,7 @@ class Employee {
       title = map["Title"];
     }
     if (map["HireDate"] is String) {
-      hireDate = map["HireDate"];
+      hireDate = DateTime.parse(map["HireDate"]);
     }
     if (map["About"] is String) {
       about = map["About"];
@@ -88,7 +88,7 @@ class Employee {
     if (id != null && id! > 0) map["Id"] = id;
     if (name != null && name!.isNotEmpty) map["Name"] = name;
     if (surname != null && surname!.isNotEmpty) map["Surname"] = surname;
-    if (birthdayDate != null) map["BirthdayDate"] = birthdayDate;
+    if (birthdayDate != null) map["BirthdayDate"] = birthdayDate.toString();
     if (gender != null) map["Gender"] = gender;
     if (email != null && email!.isNotEmpty) map["Email"] = email;
     if (phone != null && phone!.isNotEmpty) map["Phone"] = phone;
@@ -98,7 +98,7 @@ class Employee {
     if (positionId != null && positionId! > 0) map["PositionId"] = positionId;
     if (positionName != null && positionName!.isNotEmpty) map["PositionName"] = positionName;
     if (title != null && title!.isNotEmpty) map["Title"] = title;
-    if (hireDate != null && hireDate!.isNotEmpty) map["HireDate"] = hireDate;
+    if (hireDate != null) map["HireDate"] = hireDate.toString();
     if (about != null && about!.isNotEmpty) map["About"] = about;
     if (picturePath != null && picturePath!.isNotEmpty) map["PicturePath"] = picturePath;
     return map;

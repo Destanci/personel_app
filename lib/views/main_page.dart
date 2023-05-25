@@ -41,6 +41,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   bool _showScrollTop = false;
+  bool _requested = false;
 
   @override
   void initState() {
@@ -61,16 +62,29 @@ class _MainPageState extends State<MainPage> {
     });
 
     _scrollController.addListener(() {
-      print(_scrollController.position.extentAfter);
-      if (_scrollController.position.extentAfter < 500) {
-        setState(() {
-          _apiManager.getEmployees(PagedRequest(
-            start: _employeeManager.list.length - 1,
-            length: 10,
-          ));
-        });
+      if (!_employeeManager.endOfList) {
+        if (_scrollController.position.extentAfter <= 0) {
+          if (!_requested) {
+            _requested = true;
+            setState(() {
+              _apiManager.getEmployees(PagedRequest(
+                start: _employeeManager.list.length,
+                length: 10,
+              ));
+            });
+          }
+        } else {
+          _requested = false;
+        }
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+
+    super.dispose();
   }
 
   @override
@@ -116,10 +130,12 @@ class _MainPageState extends State<MainPage> {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          _apiManager.getEmployees(PagedRequest(
-            start: 0,
-            length: 10,
-          ));
+          _apiManager.getEmployees(
+              PagedRequest(
+                start: 0,
+                length: 10,
+              ),
+              clearList: true);
         },
         child: CustomScrollView(
           controller: _scrollController,
@@ -168,14 +184,26 @@ class _MainPageState extends State<MainPage> {
             ),
             Consumer<EmployeeManager>(
               builder: (context, manager, child) {
-                return SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    childCount: manager.list.length,
-                    (context, index) {
-                      return EmployeeTile(employee: manager.list.elementAt(index));
-                    },
-                  ),
-                );
+                return manager.list.length > 0
+                    ? SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          childCount: manager.list.length,
+                          (context, index) {
+                            return EmployeeTile(employee: manager.list.elementAt(index));
+                          },
+                        ),
+                      )
+                    : SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                        childCount: 1,
+                        (context, index) {
+                          return Center(
+                              child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: CircularProgressIndicator(),
+                          ));
+                        },
+                      ));
               },
             ),
           ],
@@ -186,13 +214,21 @@ class _MainPageState extends State<MainPage> {
               onPressed: () {
                 _scrollController.animateTo(0, duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
               },
-              child: Icon(Icons.arrow_upward),
+              child: Icon(
+                Icons.arrow_upward,
+                color: Theme.of(context).colorScheme.onPrimary,
+              ),
+              backgroundColor: Theme.of(context).colorScheme.primary,
             )
           : FloatingActionButton(
               onPressed: () {
                 // Navigator.push(context, );
               },
-              child: Icon(Icons.add),
+              child: Icon(
+                Icons.add,
+                color: Theme.of(context).colorScheme.onPrimary,
+              ),
+              backgroundColor: Theme.of(context).colorScheme.primary,
             ),
     );
   }
