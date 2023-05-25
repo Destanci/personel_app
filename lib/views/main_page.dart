@@ -1,6 +1,8 @@
 import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:personel_app/core/_utils/utilities.dart';
+import 'package:personel_app/core/models/paged_request_model.dart';
+import 'package:personel_app/managers/api_manager.dart';
 import 'package:personel_app/views/main_page_filter.dart';
 import 'package:provider/provider.dart';
 
@@ -15,6 +17,9 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  final ApiManager _apiManager = ApiManager();
+  final EmployeeManager _employeeManager = EmployeeManager();
+
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
 
@@ -35,9 +40,37 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
+  bool _showScrollTop = false;
+
   @override
   void initState() {
     super.initState();
+
+    _scrollController.addListener(() {
+      double scrollOffset = 10;
+
+      if (_scrollController.offset > scrollOffset) {
+        setState(() {
+          _showScrollTop = true;
+        });
+      } else {
+        setState(() {
+          _showScrollTop = false;
+        });
+      }
+    });
+
+    _scrollController.addListener(() {
+      print(_scrollController.position.extentAfter);
+      if (_scrollController.position.extentAfter < 500) {
+        setState(() {
+          _apiManager.getEmployees(PagedRequest(
+            start: _employeeManager.list.length - 1,
+            length: 10,
+          ));
+        });
+      }
+    });
   }
 
   @override
@@ -83,7 +116,10 @@ class _MainPageState extends State<MainPage> {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          developer.log('Refresh');
+          _apiManager.getEmployees(PagedRequest(
+            start: 0,
+            length: 10,
+          ));
         },
         child: CustomScrollView(
           controller: _scrollController,
@@ -145,6 +181,19 @@ class _MainPageState extends State<MainPage> {
           ],
         ),
       ),
+      floatingActionButton: _showScrollTop
+          ? FloatingActionButton(
+              onPressed: () {
+                _scrollController.animateTo(0, duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
+              },
+              child: Icon(Icons.arrow_upward),
+            )
+          : FloatingActionButton(
+              onPressed: () {
+                // Navigator.push(context, );
+              },
+              child: Icon(Icons.add),
+            ),
     );
   }
 }

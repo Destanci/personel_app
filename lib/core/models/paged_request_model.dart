@@ -6,11 +6,11 @@ class PagedRequest {
   RequestSearch? search = RequestSearch(value: '');
   List<RequestOrder> order;
   PagedRequest({
-    required this.draw,
     required this.start,
     required this.length,
     this.search,
     this.order = const [],
+    this.draw = 0,
   });
 
   Map<String, dynamic> toMap() {
@@ -31,7 +31,7 @@ class RequestOrder {
 
   RequestOrder({
     required this.columnName,
-    this.dir = 'ASC',
+    this.dir = 'asc',
   });
 
   Map<String, dynamic> toMap() {

@@ -4,8 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'core/models/paged_request_model.dart';
+import 'managers/api_manager.dart';
 import 'managers/employee_manager.dart';
-import 'managers/json_employee_reader.dart';
 import 'theme.dart';
 import 'views/main_page.dart';
 
@@ -15,7 +16,8 @@ void main() async {
 // ! Remove after the release
   HttpOverrides.global = MyHttpOverrides();
 
-  JEmployeeReader().read();
+  // JEmployeeReader().read();
+  ApiManager().getEmployees(PagedRequest(start: 0, length: 20));
 
   runApp(const MainApp());
 }
