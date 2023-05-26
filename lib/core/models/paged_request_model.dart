@@ -26,17 +26,17 @@ class PagedRequest {
 }
 
 class RequestOrder {
-  String columnName;
+  String column;
   String dir;
 
   RequestOrder({
-    required this.columnName,
+    required this.column,
     this.dir = 'asc',
   });
 
   Map<String, dynamic> toMap() {
     final Map<String, dynamic> map = <String, dynamic>{};
-    if (columnName.isNotEmpty) map["ColumnName"] = columnName;
+    if (column.isNotEmpty) map["Column"] = column;
     if (dir.isNotEmpty) map["Dir"] = dir;
     return map;
   }

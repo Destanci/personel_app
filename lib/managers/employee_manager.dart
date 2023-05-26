@@ -1,5 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'dart:developer' as developer;
+
+import 'package:flutter/material.dart';
 
 import '../models/employee_model.dart';
 
@@ -14,18 +15,16 @@ class EmployeeManager with ChangeNotifier {
   }
   static const bool _debug = true;
 
-  int recordsFiltered = 0;
-  int recordTotal = 0;
+  int recordsFiltered = -1;
+  int recordTotal = -1;
 
   bool endOfList = false;
 
   List<Employee> _list = [];
-
   List<Employee> get list => [..._list];
-
   set list(List<Employee> new_list) {
     _list = new_list;
-    developer.log("COUNT : ${_list.length}");
+    ////developer.log("COUNT : ${_list.length}");
     notifyListeners();
   }
 
@@ -46,7 +45,7 @@ class EmployeeManager with ChangeNotifier {
     }
 
     _list.addAll(new_items);
-    developer.log("COUNT : ${_list.length}");
+    //// developer.log("COUNT : ${_list.length}");
     notifyListeners();
   }
 }

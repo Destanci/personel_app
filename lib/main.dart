@@ -6,9 +6,11 @@ import 'package:provider/provider.dart';
 
 import 'core/models/paged_request_model.dart';
 import 'managers/api_manager.dart';
+import 'managers/department_manager.dart';
 import 'managers/employee_manager.dart';
+import 'managers/position_manager.dart';
 import 'theme.dart';
-import 'views/main_page.dart';
+import 'views/main_page/main_page.dart';
 
 void main() async {
   await WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +19,7 @@ void main() async {
   HttpOverrides.global = MyHttpOverrides();
 
   // JEmployeeReader().read();
-  ApiManager().getEmployees(PagedRequest(start: 0, length: 10));
+  ApiManager().getEmployees(PagedRequest(start: 0, length: 10)).whenComplete(() => ApiManager().syncOtherData());
 
   runApp(const MainApp());
 }
@@ -43,6 +45,8 @@ class MainApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: EmployeeManager()),
+        ChangeNotifierProvider.value(value: DepartmentManager()),
+        ChangeNotifierProvider.value(value: PositionManager()),
       ],
       child: MaterialApp(
         title: 'Personel App Demo',

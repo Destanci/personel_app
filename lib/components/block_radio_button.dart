@@ -33,7 +33,7 @@ class _BlockRadioButtonState extends State<BlockRadioButton> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.primaryContainer,
+      color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).disabledColor,
       child: InkWell(
         onTap: () {
           setState(() {
@@ -53,9 +53,7 @@ class _BlockRadioButtonState extends State<BlockRadioButton> {
                 fit: BoxFit.contain,
                 child: Icon(
                   widget.icon,
-                  color: isSelected
-                      ? Theme.of(context).colorScheme.onPrimary
-                      : Theme.of(context).colorScheme.onPrimaryContainer,
+                  color: Theme.of(context).colorScheme.onPrimary,
                 ),
               ),
               if (widget.text.isNotEmpty) SizedBox(height: 10),
@@ -63,9 +61,7 @@ class _BlockRadioButtonState extends State<BlockRadioButton> {
                 Text(
                   widget.text,
                   style: TextStyle(
-                    color: isSelected
-                        ? Theme.of(context).colorScheme.onPrimary
-                        : Theme.of(context).colorScheme.onPrimaryContainer,
+                    color: Theme.of(context).colorScheme.onPrimary,
                   ),
                 )
             ],

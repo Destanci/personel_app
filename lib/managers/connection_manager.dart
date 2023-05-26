@@ -13,16 +13,16 @@ class ConnectionManager with ChangeNotifier {
     return _singleton;
   }
 
-  static const bool _debug = false;
+  static const bool _debug = true;
 
-  bool _hasConnection = false;
+  bool _hasConnection = true;
   bool get hasConnection => _hasConnection;
   set hasConnection(bool value) {
     _hasConnection = value;
     notifyListeners();
   }
 
-  static const String _host = 'localhost:7025';
+  static const String _host = 'localhost:44391';
   String get host => 'https://${_host.replaceFirst('localhost', '10.0.2.2')}';
 
   Future<Map<String, dynamic>?> postServer(
@@ -35,13 +35,13 @@ class ConnectionManager with ChangeNotifier {
     if (_debug) {
       developer.log('To: $url Posting:\n$data');
     }
-    bool connectionEstablished = false;
+    bool connectionEstablished = true;
 
     Map<String, dynamic>? res = await http
         .post(Uri.parse(url),
             headers: <String, String>{
               'Content-Type': 'application/json; charset=UTF-8',
-              'Content-Length': data.length.toString(),
+              'Content-Length': utf8.encode(data).length.toString(),
               'Host': _host
             },
             body: data)

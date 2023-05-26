@@ -1,13 +1,16 @@
-import 'dart:developer' as developer;
+import 'package:async/async.dart';
 import 'package:flutter/material.dart';
-import 'package:personel_app/core/_utils/utilities.dart';
-import 'package:personel_app/core/models/paged_request_model.dart';
-import 'package:personel_app/managers/api_manager.dart';
-import 'package:personel_app/views/main_page_filter.dart';
 import 'package:provider/provider.dart';
 
-import '../components/employee_card.dart';
-import '../managers/employee_manager.dart';
+import '../../components/employee_card.dart';
+import '../../core/_utils/utilities.dart';
+import '../../core/models/paged_request_model.dart';
+import '../../managers/api_manager.dart';
+import '../../managers/connection_manager.dart';
+import '../../managers/employee_manager.dart';
+import '../../models/filter_models/employee_filter.dart';
+import 'main_page_filter.dart';
+import 'main_page_order.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
@@ -23,12 +26,15 @@ class _MainPageState extends State<MainPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
 
-  bool _filterActive = false;
-  bool get filterActive => _filterActive;
-  set filterActive(bool value) {
+  List<RequestOrder> orderList = [];
+
+  EmployeeFilter? _filter;
+  EmployeeFilter? get filter => _filter;
+  set filter(EmployeeFilter? value) {
     setState(() {
-      _filterActive = value;
+      _filter = value;
     });
+    refreshList();
   }
 
   bool _showSearch = false;
@@ -42,6 +48,8 @@ class _MainPageState extends State<MainPage> {
 
   bool _showScrollTop = false;
   bool _requested = false;
+
+  CancelableOperation? _searchTimeout = null;
 
   @override
   void initState() {
@@ -60,17 +68,21 @@ class _MainPageState extends State<MainPage> {
         });
       }
     });
-
     _scrollController.addListener(() {
       if (!_employeeManager.endOfList) {
         if (_scrollController.position.extentAfter <= 0) {
           if (!_requested) {
             _requested = true;
             setState(() {
-              _apiManager.getEmployees(PagedRequest(
-                start: _employeeManager.list.length,
-                length: 10,
-              ));
+              _apiManager.getEmployees(
+                PagedRequest(
+                  start: _employeeManager.list.length,
+                  length: 10,
+                ),
+                filter: filter,
+                search: showSearch ? _searchController.text : null,
+                orderList: orderList,
+              );
             });
           }
         } else {
@@ -80,9 +92,23 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
+  Future refreshList() async {
+    await _apiManager.getEmployees(
+      PagedRequest(
+        start: 0,
+        length: 10,
+      ),
+      filter: filter,
+      search: showSearch ? _searchController.text : null,
+      orderList: orderList,
+      clearList: true,
+    );
+  }
+
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
 
     super.dispose();
   }
@@ -96,25 +122,21 @@ class _MainPageState extends State<MainPage> {
         actions: [
           IconButton(
             icon: Icon(
-              _filterActive ? Icons.filter_alt : Icons.filter_alt_outlined,
+              filter != null ? Icons.filter_alt : Icons.filter_alt_outlined,
             ),
             onPressed: () async {
               dynamic val = await showDialog(
                 context: context,
                 builder: (context) {
                   return MainPageFilter(
-                    onSubmit: () {
-                      filterActive = true;
-                    },
-                    onReset: () {
-                      filterActive = false;
-                    },
+                    filter: filter,
+                    onReset: () => filter = null,
                   );
                 },
               );
-
-              developer.log(val.toString());
-              if (val != null) {}
+              if (val is EmployeeFilter) {
+                filter = val;
+              }
             },
           ),
           IconButton(
@@ -122,21 +144,40 @@ class _MainPageState extends State<MainPage> {
               _showSearch ? Icons.search_off : Icons.search_rounded,
             ),
             onPressed: () {
-              developer.log('Search');
-              showSearch = !_showSearch;
+              showSearch = !showSearch;
+              if (showSearch == false) refreshList();
             },
-          )
+          ),
+          IconButton(
+            icon: Transform.flip(
+              flipX: true,
+              child: Icon(
+                Icons.sort,
+              ),
+            ),
+            onPressed: () async {
+              dynamic val = await showDialog(
+                context: context,
+                builder: (context) {
+                  return MainPageOrder(
+                    orderList: orderList,
+                    onReset: () {
+                      orderList.clear();
+                      refreshList();
+                    },
+                  );
+                },
+              );
+              if (val is List<RequestOrder>) {
+                orderList = val;
+                refreshList();
+              }
+            },
+          ),
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () async {
-          _apiManager.getEmployees(
-              PagedRequest(
-                start: 0,
-                length: 10,
-              ),
-              clearList: true);
-        },
+        onRefresh: () => refreshList(),
         child: CustomScrollView(
           controller: _scrollController,
           physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
@@ -144,7 +185,7 @@ class _MainPageState extends State<MainPage> {
             SliverAppBar(
               pinned: true,
               titleSpacing: 0,
-              toolbarHeight: _showSearch ? kToolbarHeight : 0,
+              toolbarHeight: showSearch ? kToolbarHeight : 0,
               title: Padding(
                 padding: EdgeInsets.symmetric(vertical: 4),
                 child: TextField(
@@ -153,6 +194,16 @@ class _MainPageState extends State<MainPage> {
                   style: TextStyle(
                     color: Theme.of(context).appBarTheme.foregroundColor,
                   ),
+                  onChanged: (value) {
+                    _searchTimeout?.cancel();
+                    _searchTimeout = CancelableOperation.fromFuture(
+                      Future.delayed(
+                        Duration(seconds: 1),
+                        () => refreshList(),
+                      ),
+                    );
+                  },
+                  onSubmitted: (_) => refreshList(),
                   decoration: InputDecoration(
                     contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     hintText: 'Ara...',
@@ -176,7 +227,14 @@ class _MainPageState extends State<MainPage> {
                         Icons.clear,
                         color: Theme.of(context).appBarTheme.foregroundColor,
                       ),
-                      onPressed: () => _searchController.clear(),
+                      onPressed: () {
+                        refreshList();
+                        if (_searchController.text.isEmpty) {
+                          showSearch = false;
+                        } else {
+                          _searchController.clear();
+                        }
+                      },
                     ),
                   ),
                 ),
@@ -199,8 +257,12 @@ class _MainPageState extends State<MainPage> {
                         (context, index) {
                           return Center(
                               child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: CircularProgressIndicator(),
+                            padding: const EdgeInsets.all(16),
+                            child: ConnectionManager().hasConnection
+                                ? manager.recordsFiltered == 0
+                                    ? Text('Veri Bulunamadı')
+                                    : CircularProgressIndicator()
+                                : Text('Bağlantı Kurulamadı'),
                           ));
                         },
                       ));

@@ -1,12 +1,16 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 
-import 'package:personel_app/core/models/api_response.dart';
-
+import '../core/models/api_response.dart';
 import '../core/models/paged_request_model.dart';
+import '../models/department.dart';
 import '../models/employee_model.dart';
+import '../models/filter_models/employee_filter.dart';
+import '../models/position.dart';
 import 'connection_manager.dart';
+import 'department_manager.dart';
 import 'employee_manager.dart';
+import 'position_manager.dart';
 
 class ApiManager {
   static final ApiManager _singleton = ApiManager._internal();
@@ -23,21 +27,18 @@ class ApiManager {
 
   int _draw = 1;
 
-  bool requestTimeout = true;
-
-  void getEmployees(PagedRequest request, {bool clearList = false}) async {
-    if (!requestTimeout) return;
-
-    requestTimeout = false;
-    Future.delayed(Duration(seconds: 1), () {
-      requestTimeout = true;
-    });
-
+  Future getEmployees(PagedRequest request,
+      {EmployeeFilter? filter, String? search, List<RequestOrder>? orderList, bool clearList = false}) async {
     request.draw = _draw++;
 
+    Map<String, dynamic> map = request.toMap();
+    if (filter != null) map["Filter"] = filter.toMap();
+    if (search != null) map["Search"] = {"Value": search};
+    if (orderList != null) map["Order"] = orderList.map((e) => e.toMap()).toList();
+
     var res = await _connectionManager.postServer(
-      jsonEncode(request.toMap()),
-      controller: 'Personel/GetPersonelList',
+      jsonEncode(map),
+      controller: 'Personel/GetList',
     );
 
     if (res != null) {
@@ -63,6 +64,34 @@ class ApiManager {
           }
           _employeeManager.recordsFiltered = response.recordsFiltered!;
           _employeeManager.recordTotal = response.recordsTotal!;
+        }
+      } catch (ex) {
+        developer.log('[ERROR] -> Converting Data : $ex');
+      }
+    }
+  }
+
+  Future syncOtherData() async {
+    var res = await _connectionManager.postServer('', controller: 'Department/GetList');
+    if (res != null) {
+      try {
+        var response = DataResponse.fromMap(res);
+        if (response.data is List) {
+          DepartmentManager departmentManager = DepartmentManager();
+          departmentManager.list = response.data.map<Department>((e) => Department.fromMap(e)).toList();
+        }
+      } catch (ex) {
+        developer.log('[ERROR] -> Converting Data : $ex');
+      }
+    }
+
+    res = await _connectionManager.postServer('', controller: 'Position/GetList');
+    if (res != null) {
+      try {
+        var response = DataResponse.fromMap(res);
+        if (response.data is List) {
+          PositionManager positionManager = PositionManager();
+          positionManager.list = response.data.map<Position>((e) => Position.fromMap(e)).toList();
         }
       } catch (ex) {
         developer.log('[ERROR] -> Converting Data : $ex');
