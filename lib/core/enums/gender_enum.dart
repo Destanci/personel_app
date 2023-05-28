@@ -22,6 +22,10 @@ extension GenderExtensions on Gender {
   }
 
   String toDisplay() {
-    return this.convert().toCamelCase();
+    return this.convert().toPascalCase();
+  }
+
+  String toServer() {
+    return this.toString().toPascalCase();
   }
 }

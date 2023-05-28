@@ -9,6 +9,7 @@ class CircleImageAvatar extends StatefulWidget {
   final Widget? placeholder;
   final String imagePath;
 
+  final bool forcePlaceholder;
   final Widget? foreground;
 
   final Function? onTap;
@@ -21,6 +22,7 @@ class CircleImageAvatar extends StatefulWidget {
     this.placeholder,
     this.onTap,
     this.foreground,
+    this.forcePlaceholder = false,
   }) : super(key: key);
 
   @override
@@ -37,7 +39,7 @@ class CircleImageAvatarState extends State<CircleImageAvatar> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: widget.onTap == null ? null : () => widget.onTap!.call(),
-      child: widget.imagePath.isEmpty || !widget.imagePath.toString().startsWith('/')
+      child: widget.forcePlaceholder || widget.imagePath.isEmpty || !widget.imagePath.toString().startsWith('/')
           ? _buildPlaceHolder()
           : _error
               ? _buildPlaceHolder()
@@ -72,15 +74,24 @@ class CircleImageAvatarState extends State<CircleImageAvatar> {
     }
   }
 
-  Widget _buildPlaceHolder() => Stack(
-        alignment: Alignment.center,
-        children: [
-          CircleAvatar(
-            maxRadius: widget.size,
-            backgroundImage: widget.placeholder != null ? null : AssetImage('assets/placeholder.png'),
-            child: widget.placeholder,
+  Widget _buildPlaceHolder() {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        SizedBox(
+          height: widget.size * 2,
+          width: widget.size * 2,
+          child: ClipOval(
+            child: widget.placeholder != null
+                ? widget.placeholder
+                : CircleAvatar(
+                    maxRadius: widget.size,
+                    backgroundImage: AssetImage('assets/placeholder.png'),
+                  ),
           ),
-          if (widget.foreground != null) widget.foreground!,
-        ],
-      );
+        ),
+        if (widget.foreground != null) widget.foreground!,
+      ],
+    );
+  }
 }

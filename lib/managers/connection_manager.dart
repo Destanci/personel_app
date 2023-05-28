@@ -13,7 +13,7 @@ class ConnectionManager with ChangeNotifier {
     return _singleton;
   }
 
-  static const bool _debug = false;
+  static const bool _debug = true;
 
   bool _hasConnection = true;
   bool get hasConnection => _hasConnection;
@@ -82,6 +82,38 @@ class ConnectionManager with ChangeNotifier {
       return res;
     } catch (ex) {
       hasConnection = false;
+      developer.log('ERROR -> Connection Failed with an Error: [$ex]');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> sendImage(
+    int id,
+    String imagePath, {
+    String controller = '',
+  }) async {
+    try {
+      var url = '$host/api/$controller';
+
+      var request = http.MultipartRequest("POST", Uri.parse(url));
+      request.headers.addAll({
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Host': headerHost,
+      });
+      request.fields["Id"] = id.toString();
+
+      var pic = await http.MultipartFile.fromPath("file", imagePath);
+      request.files.add(pic);
+
+      var response = await request.send();
+      if (_debug) developer.log('CONNECTION STATUS CODE: ${response.statusCode}');
+
+      var responseData = await response.stream.toBytes();
+      var responseJson = jsonDecode(String.fromCharCodes(responseData));
+      if (_debug) developer.log('CONNECTION STATUS CODE: $responseJson');
+
+      return responseJson;
+    } catch (ex) {
       developer.log('ERROR -> Connection Failed with an Error: [$ex]');
       return null;
     }

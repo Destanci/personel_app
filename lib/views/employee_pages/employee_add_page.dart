@@ -1,4 +1,5 @@
 import 'dart:developer' as developer;
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:personel_app/managers/api_manager.dart';
@@ -35,6 +36,8 @@ class _EmployeeAddPageState extends State<EmployeeAddPage> {
   final DateTime firstDate = DateTime.now().subtract(Duration(days: 365 * 100));
   final DateTime lastDate = DateTime.now().add(Duration(days: 365 * 2));
 
+  File? selectedImage = null;
+
   @override
   initState() {
     super.initState();
@@ -70,9 +73,28 @@ class _EmployeeAddPageState extends State<EmployeeAddPage> {
                         child: Text(' Evet '),
                         onPressed: () {
                           developer.log('DELETE');
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return Dialog(
+                                insetPadding: EdgeInsets.zero,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ).then((value) => Navigator.pop(context, value));
+                          _apiManager.deleteEmployee(_employee).then((value) => Navigator.pop(context, value));
+
                           Utilities.closeKeyboard(context);
                           Navigator.pop(context);
-                          // TODO: Remove Employee
                         },
                       ),
                     ],
@@ -106,6 +128,7 @@ class _EmployeeAddPageState extends State<EmployeeAddPage> {
                   .updateEmployee(
                     _employee,
                     add: !widget.isUpdate,
+                    imagePath: selectedImage?.path,
                   )
                   .then((value) => Navigator.pop(context, value));
             },
@@ -122,6 +145,13 @@ class _EmployeeAddPageState extends State<EmployeeAddPage> {
                 child: CircleImageAvatar(
                   imagePath: _employee.picturePath ?? '',
                   size: 100,
+                  forcePlaceholder: selectedImage != null,
+                  placeholder: selectedImage != null
+                      ? Image.file(
+                          selectedImage!,
+                          fit: BoxFit.contain,
+                        )
+                      : null,
                   foreground: Positioned(
                     bottom: 5,
                     right: 5,
@@ -132,9 +162,7 @@ class _EmployeeAddPageState extends State<EmployeeAddPage> {
                         Icons.edit,
                         color: Theme.of(context).colorScheme.onPrimary,
                       ),
-                      onPressed: () {
-                        developer.log('IMAGE UPDATE');
-                      },
+                      onPressed: () => _editImage(),
                     ),
                   ),
                 ),
@@ -444,5 +472,26 @@ class _EmployeeAddPageState extends State<EmployeeAddPage> {
         );
       },
     );
+  }
+
+  Future _editImage() async {
+    try {
+      var file = await Utilities.pickImageFromGallery();
+
+      developer.log(file.toString());
+
+      if (file != null) {
+        var cropped = await Utilities.cropImage(context, file.path, 500);
+        developer.log(cropped.toString());
+
+        if (cropped != null) {
+          setState(() {
+            selectedImage = File(cropped.path);
+          });
+        }
+      }
+    } catch (ex) {
+      developer.log('ERROR -> $ex');
+    }
   }
 }

@@ -51,8 +51,8 @@ class Employee {
     if (map["BirthdayDate"] is String) {
       birthdayDate = DateTime.parse(map["BirthdayDate"]);
     }
-    if (map["Gender"] is String) {
-      gender = Gender.fromString(map["Gender"]);
+    if (map["GenderName"] is String) {
+      gender = Gender.fromString(map["GenderName"]);
     }
     if (map["Email"] is String) {
       email = map["Email"];
@@ -96,7 +96,7 @@ class Employee {
     if (name != null && name!.isNotEmpty) map["Name"] = name;
     if (surname != null && surname!.isNotEmpty) map["Surname"] = surname;
     if (birthdayDate != null) map["BirthdayDate"] = birthdayDate.toString();
-    if (gender != null) map["Gender"] = gender.toString();
+    if (gender != null) map["Gender"] = gender!.toServer();
     if (email != null && email!.isNotEmpty) map["Email"] = email;
     if (phone != null && phone!.isNotEmpty) map["Phone"] = phone;
     if (address != null && address!.isNotEmpty) map["Address"] = address;

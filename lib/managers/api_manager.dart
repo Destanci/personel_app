@@ -71,7 +71,7 @@ class ApiManager {
     }
   }
 
-  Future<bool> updateEmployee(Employee employee, {bool add = false}) async {
+  Future<bool> updateEmployee(Employee employee, {bool add = false, String? imagePath}) async {
     var controller = add ? 'Personel/Create' : 'Personel/Update';
 
     Map<String, dynamic> map = employee.toMap();
@@ -79,6 +79,43 @@ class ApiManager {
     var res = await _connectionManager.postServer(
       jsonEncode(map),
       controller: controller,
+    );
+
+    if (res != null) {
+      try {
+        if (res["Result"] is String && (res["Result"] as String).contains("Success")) {
+          developer.log(res["Result"]);
+
+          if (imagePath != null && res["Id"] is int) {
+            var future = _connectionManager
+                .sendImage(
+              res["Id"],
+              imagePath,
+              controller: 'Personel/UploadImage',
+            )
+                .then((value) {
+              if (value != null) {
+                if (value["Result"] is String && (value["Result"] as String).contains("Success")) {
+                  return true;
+                }
+              }
+              return false;
+            });
+            return future;
+          }
+          return true;
+        }
+      } catch (ex) {
+        developer.log('[ERROR] -> Progressing Data : $ex');
+      }
+    }
+    return false;
+  }
+
+  Future<bool> deleteEmployee(Employee employee) async {
+    var res = await _connectionManager.postServer(
+      jsonEncode(employee.id),
+      controller: 'Personel/Remove',
     );
 
     if (res != null) {
@@ -93,6 +130,8 @@ class ApiManager {
     }
     return false;
   }
+
+  Future uploadImage() async {}
 
   Future syncOtherData() async {
     var res = await _connectionManager.postServer('', controller: 'Department/GetList');
