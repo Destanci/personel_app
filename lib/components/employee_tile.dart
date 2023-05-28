@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:personel_app/views/employee_pages/employee_details_page.dart';
 
 import '../core/_utils/utilities.dart';
-import '../models/employee_model.dart';
+import '../models/employee.dart';
 import 'circle_image_avatar.dart';
 
 class EmployeeTile extends StatefulWidget {
   final Employee employee;
+  final void Function()? listRefresher;
 
   const EmployeeTile({
     Key? key,
     required this.employee,
+    this.listRefresher,
   }) : super(key: key);
 
   @override
@@ -23,15 +26,22 @@ class _EmployeeTileState extends State<EmployeeTile> {
   Widget build(BuildContext context) {
     return ListTile(
       onTap: () {
-        if (Utilities.isKeyboardShowing(context)) {
-          Utilities.closeKeyboard(context);
-        }
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => ConversationPage(conversationId: conversation.id),
-        //   ),
-        // );
+        Utilities.closeKeyboard(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EmployeeDetailsPage(employee: widget.employee),
+          ),
+        ).then((value) {
+          if (value is bool) {
+            if (value) widget.listRefresher?.call();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(value ? 'Personel başarıyla güncellendi' : 'Personel güncelleme başarısız'),
+              ),
+            );
+          }
+        });
       },
       leading: SizedBox(
         height: 50,

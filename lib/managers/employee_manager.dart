@@ -2,7 +2,7 @@ import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 
-import '../models/employee_model.dart';
+import '../models/employee.dart';
 
 class EmployeeManager with ChangeNotifier {
   static final EmployeeManager _singleton = EmployeeManager._internal();

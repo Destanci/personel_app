@@ -3,7 +3,7 @@ import 'dart:developer' as developer;
 
 import 'package:flutter/services.dart';
 
-import '../models/employee_model.dart';
+import '../models/employee.dart';
 import 'employee_manager.dart';
 
 class JEmployeeReader {

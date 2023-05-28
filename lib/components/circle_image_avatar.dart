@@ -1,10 +1,12 @@
-import 'package:flutter/foundation.dart';
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
+import 'package:personel_app/managers/connection_manager.dart';
 
 class CircleImageAvatar extends StatefulWidget {
   final double size;
   final Color color;
-  final String placeholder;
+  final Widget? placeholder;
   final String imagePath;
 
   final Widget? foreground;
@@ -16,7 +18,7 @@ class CircleImageAvatar extends StatefulWidget {
     this.imagePath = '',
     this.size = 20,
     this.color = Colors.grey,
-    this.placeholder = ' ',
+    this.placeholder,
     this.onTap,
     this.foreground,
   }) : super(key: key);
@@ -26,27 +28,59 @@ class CircleImageAvatar extends StatefulWidget {
 }
 
 class CircleImageAvatarState extends State<CircleImageAvatar> {
+  final _connectionManager = ConnectionManager();
+  final String host = ConnectionManager().host;
+
+  bool _error = false;
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: widget.onTap == null ? null : () => widget.onTap!.call(),
       child: widget.imagePath.isEmpty || !widget.imagePath.toString().startsWith('/')
-          ? CircleAvatar(
-              maxRadius: widget.size,
-              backgroundImage: AssetImage('assets/placeholder.png'),
-            )
-          : CircleAvatar(
-              maxRadius: widget.size,
-              backgroundColor: widget.color,
-              backgroundImage: AssetImage('assets/placeholder.png'),
-              onBackgroundImageError: (exception, context) {
-                if (kDebugMode) {
-                  print("Couldn't Load Profile Image of [${widget.placeholder}] "
-                      "-> ${widget.imagePath}" ////"-> ${'http://${ConnectionManager.serverHost.replaceFirst('localhost', '10.0.2.2')}' + widget.imagePath}"
-                      "\nException: $exception");
-                }
-              },
-            ),
+          ? _buildPlaceHolder()
+          : _error
+              ? _buildPlaceHolder()
+              : _buildNetworkImage(),
     );
   }
+
+  Widget _buildNetworkImage() {
+    try {
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          CircleAvatar(
+            maxRadius: widget.size,
+            backgroundImage: NetworkImage(
+              '${host}${widget.imagePath}',
+              headers: {'Host': _connectionManager.headerHost},
+            ),
+            onBackgroundImageError: (exception, context) {
+              developer.log("Couldn't Load Profile Image -> ${host}/${widget.imagePath}\nException: $exception");
+              setState(() {
+                _error = true;
+              });
+            },
+          ),
+          if (widget.foreground != null) widget.foreground!,
+        ],
+      );
+    } catch (ex) {
+      developer.log('ERROR -> Image not loaded [$ex]');
+      return _buildPlaceHolder();
+    }
+  }
+
+  Widget _buildPlaceHolder() => Stack(
+        alignment: Alignment.center,
+        children: [
+          CircleAvatar(
+            maxRadius: widget.size,
+            backgroundImage: widget.placeholder != null ? null : AssetImage('assets/placeholder.png'),
+            child: widget.placeholder,
+          ),
+          if (widget.foreground != null) widget.foreground!,
+        ],
+      );
 }

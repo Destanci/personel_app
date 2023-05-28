@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../components/block_radio_button.dart';
+import '../../core/_utils/utilities.dart';
 import '../../core/enums/gender_enum.dart';
 import '../../managers/department_manager.dart';
 import '../../managers/position_manager.dart';
@@ -165,6 +166,7 @@ class _MainPageFilterState extends State<MainPageFilter> {
           child: Text('Sıfırla'),
           onPressed: () {
             widget.onReset?.call();
+            Utilities.closeKeyboard(context);
             Navigator.pop(context, null);
           },
         ),
@@ -185,6 +187,7 @@ class _MainPageFilterState extends State<MainPageFilter> {
               positionIds: selectedPosition?.id != null ? [selectedPosition!.id!] : [],
             );
 
+            Utilities.closeKeyboard(context);
             Navigator.pop(context, filter);
           },
         ),

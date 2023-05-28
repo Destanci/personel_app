@@ -4,7 +4,7 @@ import 'dart:developer' as developer;
 import '../core/models/api_response.dart';
 import '../core/models/paged_request_model.dart';
 import '../models/department.dart';
-import '../models/employee_model.dart';
+import '../models/employee.dart';
 import '../models/filter_models/employee_filter.dart';
 import '../models/position.dart';
 import 'connection_manager.dart';
@@ -69,6 +69,29 @@ class ApiManager {
         developer.log('[ERROR] -> Converting Data : $ex');
       }
     }
+  }
+
+  Future<bool> updateEmployee(Employee employee, {bool add = false}) async {
+    var controller = add ? 'Personel/Create' : 'Personel/Update';
+
+    Map<String, dynamic> map = employee.toMap();
+
+    var res = await _connectionManager.postServer(
+      jsonEncode(map),
+      controller: controller,
+    );
+
+    if (res != null) {
+      try {
+        if (res["Result"] is String && (res["Result"] as String).contains("Success")) {
+          developer.log(res["Result"]);
+          return true;
+        }
+      } catch (ex) {
+        developer.log('[ERROR] -> Progressing Data : $ex');
+      }
+    }
+    return false;
   }
 
   Future syncOtherData() async {

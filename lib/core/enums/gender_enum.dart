@@ -1,3 +1,5 @@
+import 'package:personel_app/core/_utils/string_extensions.dart';
+
 enum Gender {
   male,
   female;
@@ -5,7 +7,21 @@ enum Gender {
   @override
   String toString() => this.name.split('.').last;
 
-  static Gender fromString(String string) {
-    return Gender.values.firstWhere((gender) => gender.name == string.toLowerCase());
+  static Gender? fromString(String string) {
+    try {
+      return Gender.values.firstWhere((gender) => gender.name.toLowerCase() == string.toLowerCase());
+    } catch (ex) {
+      return null;
+    }
+  }
+}
+
+extension GenderExtensions on Gender {
+  String convert() {
+    return this == Gender.male ? "Erkek" : "Kadın";
+  }
+
+  String toDisplay() {
+    return this.convert().toCamelCase();
   }
 }

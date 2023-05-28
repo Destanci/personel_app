@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/_utils/utilities.dart';
 import '../../core/models/paged_request_model.dart';
 
 class MainPageOrder extends StatefulWidget {
@@ -133,6 +134,8 @@ class _MainPageOrderState extends State<MainPageOrder> {
           child: Text('Sıfırla'),
           onPressed: () {
             widget.onReset?.call();
+
+            Utilities.closeKeyboard(context);
             Navigator.pop(context, null);
           },
         ),
@@ -149,6 +152,7 @@ class _MainPageOrderState extends State<MainPageOrder> {
               ));
             }
 
+            Utilities.closeKeyboard(context);
             Navigator.pop(context, orders);
           },
         ),

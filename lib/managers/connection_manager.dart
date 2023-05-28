@@ -13,7 +13,7 @@ class ConnectionManager with ChangeNotifier {
     return _singleton;
   }
 
-  static const bool _debug = true;
+  static const bool _debug = false;
 
   bool _hasConnection = true;
   bool get hasConnection => _hasConnection;
@@ -24,58 +24,66 @@ class ConnectionManager with ChangeNotifier {
 
   static const String _host = 'localhost:44391';
   String get host => 'https://${_host.replaceFirst('localhost', '10.0.2.2')}';
+  String get headerHost => _host;
 
   Future<Map<String, dynamic>?> postServer(
     String data, {
     String controller = '',
     timeout = 10,
   }) async {
-    var url = '$host/api/$controller';
+    try {
+      var url = '$host/api/$controller';
 
-    if (_debug) {
-      developer.log('To: $url Posting:\n$data');
-    }
-    bool connectionEstablished = true;
-
-    Map<String, dynamic>? res = await http
-        .post(Uri.parse(url),
-            headers: <String, String>{
-              'Content-Type': 'application/json; charset=UTF-8',
-              'Content-Length': utf8.encode(data).length.toString(),
-              'Host': _host
-            },
-            body: data)
-        .timeout(Duration(seconds: timeout))
-        .then(
-      (response) {
-        if (_debug) {
-          developer.log('CONNECTION STATUS CODE: ${response.statusCode}');
-        }
-        if (response.statusCode == 200) {
-          connectionEstablished = true;
-          if (_debug) {
-            developer.log('CONNECTION Response:\n${response.body}');
-          }
-
-          final json = jsonDecode(response.body);
-          if (json is Map<String, dynamic>) {
-            return json;
-          }
-          developer.log('ERROR -> Server Returned Unknown: [${json['Error'].toString()}]');
-        } else {
-          connectionEstablished = false;
-        }
-      },
-    ).onError((error, stackTrace) {
-      connectionEstablished = false;
-      developer.log('ERROR -> Connection Failed with an Error: [$error]');
-      return null;
-    }).whenComplete(() {
-      hasConnection = connectionEstablished;
       if (_debug) {
-        developer.log('Connection End');
+        developer.log('To: $url Posting:\n$data');
       }
-    });
-    return res;
+      bool connectionEstablished = true;
+
+      Map<String, dynamic>? res = await http
+          .post(Uri.parse(url),
+              headers: <String, String>{
+                'Content-Type': 'application/json; charset=UTF-8',
+                'Content-Length': utf8.encode(data).length.toString(),
+                'Host': headerHost
+              },
+              body: data)
+          .timeout(Duration(seconds: timeout))
+          .then(
+        (response) {
+          if (_debug) {
+            developer.log('CONNECTION STATUS CODE: ${response.statusCode}');
+          }
+          if (response.statusCode == 200) {
+            connectionEstablished = true;
+            if (_debug) {
+              developer.log('CONNECTION Response:\n${response.body}');
+            }
+
+            final json = jsonDecode(response.body);
+            if (json is Map<String, dynamic>) {
+              return json;
+            }
+            connectionEstablished = false;
+            developer.log('ERROR -> Server Returned Unknown: [${json['Error'].toString()}]');
+          } else {
+            connectionEstablished = false;
+          }
+        },
+      ).onError((error, stackTrace) {
+        connectionEstablished = false;
+        developer.log('ERROR -> Connection Failed with an Error: [$error]');
+        return null;
+      }).whenComplete(() {
+        hasConnection = connectionEstablished;
+        if (_debug) {
+          developer.log('Connection End');
+        }
+      });
+      return res;
+    } catch (ex) {
+      hasConnection = false;
+      developer.log('ERROR -> Connection Failed with an Error: [$ex]');
+      return null;
+    }
   }
 }

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import 'core/models/paged_request_model.dart';
 import 'managers/api_manager.dart';
+import 'managers/connection_manager.dart';
 import 'managers/department_manager.dart';
 import 'managers/employee_manager.dart';
 import 'managers/position_manager.dart';
@@ -19,7 +20,9 @@ void main() async {
   HttpOverrides.global = MyHttpOverrides();
 
   // JEmployeeReader().read();
-  ApiManager().getEmployees(PagedRequest(start: 0, length: 10)).whenComplete(() => ApiManager().syncOtherData());
+  ApiManager().getEmployees(PagedRequest(start: 0, length: 10)).whenComplete(() {
+    if (ConnectionManager().hasConnection) ApiManager().syncOtherData();
+  });
 
   runApp(const MainApp());
 }
@@ -44,6 +47,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider.value(value: ConnectionManager()),
         ChangeNotifierProvider.value(value: EmployeeManager()),
         ChangeNotifierProvider.value(value: DepartmentManager()),
         ChangeNotifierProvider.value(value: PositionManager()),

@@ -1,20 +1,23 @@
+import '../core/enums/gender_enum.dart';
+
 class Employee {
-  int? id;
-  String? name;
-  String? surname;
-  DateTime? birthdayDate;
-  String? gender;
-  String? email;
-  String? phone;
-  String? address;
-  int? departmentId;
-  String? departmentName;
-  int? positionId;
-  String? positionName;
-  String? title;
-  DateTime? hireDate;
-  String? about;
-  dynamic picturePath;
+  int? id; //
+  String? name; //-
+  String? surname; //-
+  DateTime? birthdayDate; //
+  Gender? gender; //
+  String? email; //
+  String? phone; //
+  String? address; //
+  int? departmentId; ////
+  String? departmentName; //
+  int? positionId; ////
+  String? positionName; //
+  String? title; //-
+  DateTime? hireDate; //
+  String? about; //
+  dynamic picturePath; //--
+  int? age; ////
 
   Employee(
       {this.id,
@@ -32,7 +35,8 @@ class Employee {
       this.title,
       this.hireDate,
       this.about,
-      this.picturePath});
+      this.picturePath,
+      this.age});
 
   Employee.fromMap(Map<String, dynamic> map) {
     if (map["Id"] is int) {
@@ -48,7 +52,7 @@ class Employee {
       birthdayDate = DateTime.parse(map["BirthdayDate"]);
     }
     if (map["Gender"] is String) {
-      gender = map["Gender"];
+      gender = Gender.fromString(map["Gender"]);
     }
     if (map["Email"] is String) {
       email = map["Email"];
@@ -80,6 +84,9 @@ class Employee {
     if (map["About"] is String) {
       about = map["About"];
     }
+    if (map["Age"] is int) {
+      age = map["Age"];
+    }
     picturePath = map["PicturePath"];
   }
 
@@ -89,7 +96,7 @@ class Employee {
     if (name != null && name!.isNotEmpty) map["Name"] = name;
     if (surname != null && surname!.isNotEmpty) map["Surname"] = surname;
     if (birthdayDate != null) map["BirthdayDate"] = birthdayDate.toString();
-    if (gender != null) map["Gender"] = gender;
+    if (gender != null) map["Gender"] = gender.toString();
     if (email != null && email!.isNotEmpty) map["Email"] = email;
     if (phone != null && phone!.isNotEmpty) map["Phone"] = phone;
     if (address != null && address!.isNotEmpty) map["Address"] = address;
@@ -100,7 +107,10 @@ class Employee {
     if (title != null && title!.isNotEmpty) map["Title"] = title;
     if (hireDate != null) map["HireDate"] = hireDate.toString();
     if (about != null && about!.isNotEmpty) map["About"] = about;
-    if (picturePath != null && picturePath!.isNotEmpty) map["PicturePath"] = picturePath;
+    // if (picturePath != null && picturePath!.isNotEmpty) map["PicturePath"] = picturePath;
+    if (age != null && age! > 0) map["Age"] = age;
     return map;
   }
+
+  String? get fullName => name != null || surname != null ? '${name ?? ''} ${surname ?? ''}' : null;
 }

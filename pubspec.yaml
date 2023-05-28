@@ -12,10 +12,12 @@ dependencies:
   flex_color_scheme: ^7.1.2
   cupertino_icons: ^1.0.4
   google_fonts: ^4.0.4
+  image_picker: ^0.8.7+5
   provider: ^6.0.1
   equatable: ^2.0.5
-  http: ^1.0.0
+  http: ^0.13.0
   async: ^2.11.0
+  intl: ^0.18.1
 
 dev_dependencies:
   flutter_test:

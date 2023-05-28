@@ -1,14 +1,17 @@
+import 'dart:developer' as developer;
+
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../components/employee_card.dart';
+import '../../components/employee_tile.dart';
 import '../../core/_utils/utilities.dart';
 import '../../core/models/paged_request_model.dart';
 import '../../managers/api_manager.dart';
 import '../../managers/connection_manager.dart';
 import '../../managers/employee_manager.dart';
 import '../../models/filter_models/employee_filter.dart';
+import '../employee_pages/employee_add_page.dart';
 import 'main_page_filter.dart';
 import 'main_page_order.dart';
 
@@ -93,6 +96,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   Future refreshList() async {
+    developer.log('refresh');
     await _apiManager.getEmployees(
       PagedRequest(
         start: 0,
@@ -247,25 +251,55 @@ class _MainPageState extends State<MainPage> {
                         delegate: SliverChildBuilderDelegate(
                           childCount: manager.list.length,
                           (context, index) {
-                            return EmployeeTile(employee: manager.list.elementAt(index));
+                            return EmployeeTile(
+                              employee: manager.list.elementAt(index),
+                              listRefresher: refreshList,
+                            );
                           },
                         ),
                       )
                     : SliverList(
                         delegate: SliverChildBuilderDelegate(
-                        childCount: 1,
-                        (context, index) {
-                          return Center(
+                          childCount: 1,
+                          (context, index) {
+                            return Center(
                               child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: ConnectionManager().hasConnection
-                                ? manager.recordsFiltered == 0
-                                    ? Text('Veri Bulunamadı')
-                                    : CircularProgressIndicator()
-                                : Text('Bağlantı Kurulamadı'),
-                          ));
-                        },
-                      ));
+                                padding: const EdgeInsets.all(16),
+                                child: Consumer<ConnectionManager>(
+                                  builder: (context, connection, child) => connection.hasConnection
+                                      ? manager.recordsFiltered == 0
+                                          ? Text('Veri Bulunamadı')
+                                          : CircularProgressIndicator()
+                                      : Column(
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: Text(
+                                                'Bağlantı Kurulamadı',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                ),
+                                              ),
+                                            ),
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                connection.hasConnection = true;
+                                                _apiManager
+                                                    .getEmployees(PagedRequest(start: 0, length: 10))
+                                                    .whenComplete(() {
+                                                  if (connection.hasConnection) ApiManager().syncOtherData();
+                                                });
+                                              },
+                                              child: Text('Tekrar Dene'),
+                                            )
+                                          ],
+                                        ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
               },
             ),
           ],
@@ -284,7 +318,20 @@ class _MainPageState extends State<MainPage> {
             )
           : FloatingActionButton(
               onPressed: () {
-                // Navigator.push(context, );
+                Utilities.closeKeyboard(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => EmployeeAddPage()),
+                ).then((value) {
+                  if (value is bool) {
+                    if (value) refreshList();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(value ? 'Personel başarıyla eklendi' : 'Personel ekleme başarısız'),
+                      ),
+                    );
+                  }
+                });
               },
               child: Icon(
                 Icons.add,
